@@ -1,0 +1,17 @@
+- name: Install certbot
+  package: name=certbot state=present
+
+- name: copy letsencrypt-get-initial-cert.sh script
+  become: yes
+  copy: src=letsencrypt-get-initial-cert.sh dest=/tmp/letsencrypt-get-initial-cert.sh mode=0700
+
+- name: obtain initial letsencrypt cert
+  become: yes
+  command: /tmp/letsencrypt-get-initial-cert.sh {{ inventory_hostname }} {{ email }}
+  args:
+    creates:/etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem
+
+- name: create strong DH params if we haven\'t already done so
+  become: yes
+  command: openssl dhparam -out /etc/ssl/certs/dhparam.pem 4096
+           creates=/etc/ssl/certs/dhparam.pem
